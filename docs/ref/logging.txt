@@ -204,8 +204,10 @@ all database queries.
 ``django.utils.autoreload``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Log messages related to the autoreload development feature of Django. 
+Log messages related to the autoreload development feature of Django.
 This is the logger used to signify a source code file modification.
+
+
 
 .. _django-contrib-gis-logger:
 
@@ -221,7 +223,8 @@ Logging related to :doc:`contrib/gis/index`, at diverse levels : external GeoSpa
 ``django.dispatch``
 ~~~~~~~~~~~~~~~~~~~
 
-Logger used in :doc:`signals`. 
+Logger used in :doc:`signals`. This logger is used in :mod:`~django.dispatch.Signal` class, serving not only the built-in signals
+but also any custom signals that a project might implement.
 
 At the ERROR level the logger adds the following extra context :
 
