@@ -53,11 +53,7 @@ class ModelInstanceCreationTests(TestCase):
         self.assertEqual(a.pub_date, datetime(2005, 7, 29, 0, 0))
 
     def test_can_create_instance_using_kwargs(self):
-        a = Article(
-            id=None,
-            headline="Third article",
-            pub_date=datetime(2005, 7, 30),
-        )
+        a = Article(id=None, headline="Third article", pub_date=datetime(2005, 7, 30))
         a.save()
         self.assertEqual(a.headline, "Third article")
         self.assertEqual(a.pub_date, datetime(2005, 7, 30, 0, 0))
@@ -127,19 +123,13 @@ class ModelInstanceCreationTests(TestCase):
 
     def test_for_datetimefields_saves_as_much_precision_as_was_given(self):
         """as much precision in *seconds*"""
-        a1 = Article(
-            headline="Article 7",
-            pub_date=datetime(2005, 7, 31, 12, 30),
-        )
+        a1 = Article(headline="Article 7", pub_date=datetime(2005, 7, 31, 12, 30))
         a1.save()
         self.assertEqual(
             Article.objects.get(id__exact=a1.id).pub_date, datetime(2005, 7, 31, 12, 30)
         )
 
-        a2 = Article(
-            headline="Article 8",
-            pub_date=datetime(2005, 7, 31, 12, 30, 45),
-        )
+        a2 = Article(headline="Article 8", pub_date=datetime(2005, 7, 31, 12, 30, 45))
         a2.save()
         self.assertEqual(
             Article.objects.get(id__exact=a2.id).pub_date,
@@ -193,10 +183,7 @@ class ModelTest(TestCase):
         with self.assertRaisesMessage(
             AttributeError, "Manager isn't accessible via Article instances"
         ):
-            getattr(
-                Article(),
-                "objects",
-            )
+            getattr(Article(), "objects")
         self.assertFalse(hasattr(Article(), "objects"))
         self.assertTrue(hasattr(Article, "objects"))
 
@@ -226,8 +213,7 @@ class ModelTest(TestCase):
 
     def test_microsecond_precision(self):
         a9 = Article(
-            headline="Article 9",
-            pub_date=datetime(2005, 7, 31, 12, 30, 45, 180),
+            headline="Article 9", pub_date=datetime(2005, 7, 31, 12, 30, 45, 180)
         )
         a9.save()
         self.assertEqual(
@@ -238,9 +224,7 @@ class ModelTest(TestCase):
     def test_manually_specify_primary_key(self):
         # You can manually specify the primary key when creating a new object.
         a101 = Article(
-            id=101,
-            headline="Article 101",
-            pub_date=datetime(2005, 7, 31, 12, 30, 45),
+            id=101, headline="Article 101", pub_date=datetime(2005, 7, 31, 12, 30, 45)
         )
         a101.save()
         a101 = Article.objects.get(pk=101)
@@ -249,8 +233,7 @@ class ModelTest(TestCase):
     def test_create_method(self):
         # You can create saved objects in a single step
         a10 = Article.objects.create(
-            headline="Article 10",
-            pub_date=datetime(2005, 7, 31, 12, 30, 45),
+            headline="Article 10", pub_date=datetime(2005, 7, 31, 12, 30, 45)
         )
         self.assertEqual(Article.objects.get(headline="Article 10"), a10)
 
@@ -258,44 +241,46 @@ class ModelTest(TestCase):
         # Edge-case test: A year lookup should retrieve all objects in
         # the given year, including Jan. 1 and Dec. 31.
         a11 = Article.objects.create(
-            headline="Article 11",
-            pub_date=datetime(2008, 1, 1),
+            headline="Article 11", pub_date=datetime(2008, 1, 1)
         )
         a12 = Article.objects.create(
-            headline="Article 12",
-            pub_date=datetime(2008, 12, 31, 23, 59, 59, 999999),
+            headline="Article 12", pub_date=datetime(2008, 12, 31, 23, 59, 59, 999999)
         )
         self.assertSequenceEqual(
-            Article.objects.filter(pub_date__year=2008),
-            [a11, a12],
+            Article.objects.filter(pub_date__year=2008), [a11, a12]
         )
 
     def test_unicode_data(self):
         # Unicode data works, too.
         a = Article(
-            headline="\u6797\u539f \u3081\u3050\u307f",
-            pub_date=datetime(2005, 7, 28),
+            headline="\u6797\u539f \u3081\u3050\u307f", pub_date=datetime(2005, 7, 28)
         )
         a.save()
         self.assertEqual(
             Article.objects.get(pk=a.id).headline, "\u6797\u539f \u3081\u3050\u307f"
         )
 
+    def test_save_positional_args_deprecation(self):
+        a = Article.objects.create(
+            headline="Article 10", pub_date=datetime(2005, 7, 31, 12, 30, 45)
+        )
+
+        a.headline = "Article 11"
+        with self.assertWarns(DeprecationWarning):
+            a.save(False, True, None, None)
+
     def test_hash_function(self):
         # Model instances have a hash function, so they can be used in sets
         # or as dictionary keys. Two models compare as equal if their primary
         # keys are equal.
         a10 = Article.objects.create(
-            headline="Article 10",
-            pub_date=datetime(2005, 7, 31, 12, 30, 45),
+            headline="Article 10", pub_date=datetime(2005, 7, 31, 12, 30, 45)
         )
         a11 = Article.objects.create(
-            headline="Article 11",
-            pub_date=datetime(2008, 1, 1),
+            headline="Article 11", pub_date=datetime(2008, 1, 1)
         )
         a12 = Article.objects.create(
-            headline="Article 12",
-            pub_date=datetime(2008, 12, 31, 23, 59, 59, 999999),
+            headline="Article 12", pub_date=datetime(2008, 12, 31, 23, 59, 59, 999999)
         )
 
         s = {a10, a11, a12}
@@ -551,27 +536,14 @@ class ModelLookupTest(TestCase):
             Article.objects.get(headline="Swallow programs in Python"), self.a
         )
 
+        self.assertSequenceEqual(Article.objects.filter(pub_date__year=2005), [self.a])
+        self.assertSequenceEqual(Article.objects.filter(pub_date__year=2004), [])
         self.assertSequenceEqual(
-            Article.objects.filter(pub_date__year=2005),
-            [self.a],
-        )
-        self.assertSequenceEqual(
-            Article.objects.filter(pub_date__year=2004),
-            [],
-        )
-        self.assertSequenceEqual(
-            Article.objects.filter(pub_date__year=2005, pub_date__month=7),
-            [self.a],
+            Article.objects.filter(pub_date__year=2005, pub_date__month=7), [self.a]
         )
 
-        self.assertSequenceEqual(
-            Article.objects.filter(pub_date__week_day=5),
-            [self.a],
-        )
-        self.assertSequenceEqual(
-            Article.objects.filter(pub_date__week_day=6),
-            [],
-        )
+        self.assertSequenceEqual(Article.objects.filter(pub_date__week_day=5), [self.a])
+        self.assertSequenceEqual(Article.objects.filter(pub_date__week_day=6), [])
 
     def test_does_not_exist(self):
         # Django raises an Article.DoesNotExist exception for get() if the
@@ -579,9 +551,7 @@ class ModelLookupTest(TestCase):
         with self.assertRaisesMessage(
             ObjectDoesNotExist, "Article matching query does not exist."
         ):
-            Article.objects.get(
-                id__exact=2000,
-            )
+            Article.objects.get(id__exact=2000)
         # To avoid dict-ordering related errors check only one lookup
         # in single assert.
         with self.assertRaises(ObjectDoesNotExist):
@@ -589,9 +559,7 @@ class ModelLookupTest(TestCase):
         with self.assertRaisesMessage(
             ObjectDoesNotExist, "Article matching query does not exist."
         ):
-            Article.objects.get(
-                pub_date__week_day=6,
-            )
+            Article.objects.get(pub_date__week_day=6)
 
     def test_lookup_by_primary_key(self):
         # Lookup by a primary key is the most common case, so Django
@@ -610,9 +578,7 @@ class ModelLookupTest(TestCase):
     def test_too_many(self):
         # Create a very similar object
         a = Article(
-            id=None,
-            headline="Swallow bites Python",
-            pub_date=datetime(2005, 7, 28),
+            id=None, headline="Swallow bites Python", pub_date=datetime(2005, 7, 28)
         )
         a.save()
 
@@ -622,13 +588,9 @@ class ModelLookupTest(TestCase):
         # lookup matches more than one object
         msg = "get() returned more than one Article -- it returned 2!"
         with self.assertRaisesMessage(MultipleObjectsReturned, msg):
-            Article.objects.get(
-                headline__startswith="Swallow",
-            )
+            Article.objects.get(headline__startswith="Swallow")
         with self.assertRaisesMessage(MultipleObjectsReturned, msg):
-            Article.objects.get(
-                pub_date__year=2005,
-            )
+            Article.objects.get(pub_date__year=2005)
         with self.assertRaisesMessage(MultipleObjectsReturned, msg):
             Article.objects.get(pub_date__year=2005, pub_date__month=7)
 
@@ -887,8 +849,7 @@ class ModelRefreshTests(TestCase):
 
     def test_refresh_fk_on_delete_set_null(self):
         a = Article.objects.create(
-            headline="Parrot programs in Python",
-            pub_date=datetime(2005, 7, 28),
+            headline="Parrot programs in Python", pub_date=datetime(2005, 7, 28)
         )
         s1 = SelfRef.objects.create(article=a)
         a.delete()
@@ -904,8 +865,7 @@ class ModelRefreshTests(TestCase):
     def test_refresh_clears_reverse_related(self):
         """refresh_from_db() clear cached reverse relations."""
         article = Article.objects.create(
-            headline="Parrot programs in Python",
-            pub_date=datetime(2005, 7, 28),
+            headline="Parrot programs in Python", pub_date=datetime(2005, 7, 28)
         )
         self.assertFalse(hasattr(article, "featured"))
         FeaturedArticle.objects.create(article_id=article.pk)
@@ -914,8 +874,7 @@ class ModelRefreshTests(TestCase):
 
     def test_refresh_clears_one_to_one_field(self):
         article = Article.objects.create(
-            headline="Parrot programs in Python",
-            pub_date=datetime(2005, 7, 28),
+            headline="Parrot programs in Python", pub_date=datetime(2005, 7, 28)
         )
         featured = FeaturedArticle.objects.create(article_id=article.pk)
         self.assertEqual(featured.article.headline, "Parrot programs in Python")

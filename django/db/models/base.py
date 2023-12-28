@@ -263,11 +263,7 @@ class ModelBase(type):
                         raise FieldError(
                             "Local field %r in class %r clashes with field of "
                             "the same name from base class %r."
-                            % (
-                                field.name,
-                                name,
-                                base.__name__,
-                            )
+                            % (field.name, name, base.__name__)
                         )
                     else:
                         inherited_attributes.add(field.name)
@@ -292,11 +288,7 @@ class ModelBase(type):
                             "Auto-generated field '%s' in class %r for "
                             "parent_link to base class %r clashes with "
                             "declared field of the same name."
-                            % (
-                                attr_name,
-                                name,
-                                base.__name__,
-                            )
+                            % (attr_name, name, base.__name__)
                         )
 
                     # Only add the ptr field if it's not already present;
@@ -336,11 +328,7 @@ class ModelBase(type):
                         raise FieldError(
                             "Local field %r in class %r clashes with field of "
                             "the same name from base class %r."
-                            % (
-                                field.name,
-                                name,
-                                base.__name__,
-                            )
+                            % (field.name, name, base.__name__)
                         )
                 else:
                     field = copy.deepcopy(field)
@@ -764,9 +752,7 @@ class Model(AltersData, metaclass=ModelBase):
             return getattr(self, field_name)
         return getattr(self, field.attname)
 
-    def save(
-        self, force_insert=False, force_update=False, using=None, update_fields=None
-    ):
+    def save(self, *args, **kwargs):
         """
         Save the current instance. Override this in a subclass if you want to
         control the saving process.
@@ -775,6 +761,21 @@ class Model(AltersData, metaclass=ModelBase):
         that the "save" must be an SQL insert or update (or equivalent for
         non-SQL backends), respectively. Normally, they should not be set.
         """
+        argnames = ["force_insert", "force_update", "using", "update_fields"]
+        args_dict = dict()
+        if len(args):
+            warnings.warn(
+                "Positional arguments for save() method is deprecated and "
+                "will be removed shortly, Please use keyword arguments instead.",
+                DeprecationWarning,
+            )
+            args_dict = dict(zip(argnames, args))
+        args_dict.update(kwargs)
+        force_insert = args_dict.get("force_insert", False)
+        force_update = args_dict.get("force_update", False)
+        using = args_dict.get("using", None)
+        update_fields = args_dict.get("update_fields", None)
+
         self._prepare_related_fields_for_save(operation_name="save")
 
         using = using or router.db_for_write(self.__class__, instance=self)
@@ -1055,7 +1056,7 @@ class Model(AltersData, metaclass=ModelBase):
                                 Max("_order") + Value(1), output_field=IntegerField()
                             ),
                             Value(0),
-                        ),
+                        )
                     )["_order__max"]
                 )
             fields = [
@@ -1181,10 +1182,7 @@ class Model(AltersData, metaclass=ModelBase):
     delete.alters_data = True
 
     async def adelete(self, using=None, keep_parents=False):
-        return await sync_to_async(self.delete)(
-            using=using,
-            keep_parents=keep_parents,
-        )
+        return await sync_to_async(self.delete)(using=using, keep_parents=keep_parents)
 
     adelete.alters_data = True
 
@@ -1460,9 +1458,7 @@ class Model(AltersData, metaclass=ModelBase):
             field = opts.get_field(unique_check[0])
             params["field_label"] = capfirst(field.verbose_name)
             return ValidationError(
-                message=field.error_messages["unique"],
-                code="unique",
-                params=params,
+                message=field.error_messages["unique"], code="unique", params=params
             )
 
         # unique_together
@@ -1641,7 +1637,7 @@ class Model(AltersData, metaclass=ModelBase):
                     ),
                     obj=cls,
                     id="models.W042",
-                ),
+                )
             ]
         return []
 
@@ -1980,7 +1976,7 @@ class Model(AltersData, metaclass=ModelBase):
                         "or a number." % index.name,
                         obj=cls,
                         id="models.E033",
-                    ),
+                    )
                 )
             if len(index.name) > index.max_name_length:
                 errors.append(
@@ -1989,7 +1985,7 @@ class Model(AltersData, metaclass=ModelBase):
                         "characters." % (index.name, index.max_name_length),
                         obj=cls,
                         id="models.E034",
-                    ),
+                    )
                 )
             if index.contains_expressions:
                 for expression in index.expressions:
@@ -2076,10 +2072,7 @@ class Model(AltersData, metaclass=ModelBase):
                 errors.append(
                     checks.Error(
                         "'%s' refers to the nonexistent field '%s'."
-                        % (
-                            option,
-                            field_name,
-                        ),
+                        % (option, field_name),
                         obj=cls,
                         id="models.E012",
                     )
@@ -2090,11 +2083,7 @@ class Model(AltersData, metaclass=ModelBase):
                         checks.Error(
                             "'%s' refers to a ManyToManyField '%s', but "
                             "ManyToManyFields are not permitted in '%s'."
-                            % (
-                                option,
-                                field_name,
-                                option,
-                            ),
+                            % (option, field_name, option),
                             obj=cls,
                             id="models.E013",
                         )
@@ -2123,7 +2112,7 @@ class Model(AltersData, metaclass=ModelBase):
                     "'ordering' and 'order_with_respect_to' cannot be used together.",
                     obj=cls,
                     id="models.E021",
-                ),
+                )
             ]
 
         if cls._meta.order_with_respect_to or not cls._meta.ordering:
@@ -2496,7 +2485,7 @@ class Model(AltersData, metaclass=ModelBase):
                                     ),
                                     obj=cls,
                                     id="models.W045",
-                                ),
+                                )
                             )
             for field_name, *lookups in references:
                 # pk is an alias that won't be found by opts.get_field.
